@@ -16,6 +16,7 @@ export default class OrderScene extends PureComponent {
     constructor(props: Object) {
         super(props);
         this.state = {
+            dataList:[],
             isRefreshing: false,
         };
 
