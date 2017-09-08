@@ -1,16 +1,19 @@
-import React, {PureComponent} from 'react';
-import {Text, View, StyleSheet, TouchableOpacity, ListView, Image, StatusBar, FlatList} from 'react-native';
-import NavigationItem from "../../widget/NavigationItem";
-import color from "../../widget/color";
+import React, { PureComponent } from 'react';
+import { View, StyleSheet, TouchableOpacity, Image, StatusBar, FlatList } from 'react-native';
+import NavigationItem from '../../widget/NavigationItem';
+import color from '../../widget/color';
 import api from '../../api';
 import screen from '../../common/screen';
-import SpacingView from "../../widget/SpacingView";
-import {Heading2, Paragraph} from "../../widget/Text";
+import SpacingView from '../../widget/SpacingView';
+import { Heading2, Paragraph } from '../../widget/Text';
+import HomeMenuView from './HomeMenuView';
+import HomeGridView from './HomeGridView';
+import GroupPurchaseCell from '../GroupPurchase/GroupPurchaseCell';
 
 export default class HomeScene extends PureComponent {
     static navigationOptions = ({navigation}) => ({
         //TouchableOpacity是点击按钮，点击后元素的透明度会发生变化
-        headerTitle: (<TouchableOpacity>
+        headerTitle: (<TouchableOpacity style={styles.searchBar}>
             <Image style={styles.searchIcon} source={require('../../img/Home/search_icon.png')}/>
             <Paragraph>一点点</Paragraph>
         </TouchableOpacity>),
@@ -48,7 +51,7 @@ export default class HomeScene extends PureComponent {
             refreshing: false,
         };
 
-        //这一大串代码不知道什么意思，函数绑定？
+        //bind是为了让函数中this不会变成调用函数的组件的this
         {
             (this: any).requestData = this.requestData.bind(this)
         }
@@ -102,6 +105,7 @@ export default class HomeScene extends PureComponent {
         try {
             let response = await fetch(api.recommend);
             let json = await response.json();
+            //map方法会将json.data的数据作为参数传递给info,info作为参数进行操作
             let dataList = json.data.map((info) => {
                     //临时写一个实体，下面是属性
                     return {
@@ -124,11 +128,10 @@ export default class HomeScene extends PureComponent {
     }
 
     renderCell(info: Object) {
-        // return (
-        //     <GroupPurchaseCell
-        //     info={info.item}
-        //     onPress={this.onCellSelected}/>);
-        return (<View><Text>Hello world</Text></View>);
+        return (
+            <GroupPurchaseCell
+                info={info.item}
+                onPress={this.onCellSelected}/>);
     }
 
     onCellSelected(info: Object) {
@@ -144,9 +147,10 @@ export default class HomeScene extends PureComponent {
     //设置FlatList的头部组件
     renderHeader() {
         return (<View>
-            {/*<HomeMenuView menuInfos={api.menuInfo} onMenuSelected={this.onMenuSelected}/>*/}
+            {/*顶部的小标签集合*/}
+            <HomeMenuView menuInfo={api.menuInfo} onMenuSelected={this.onMenuSelected}/>
             <SpacingView/>
-            {/*<HomeGridView info={this.state.discounts} onDridSelected={(this.onGridSelected)}/>*/}
+            <HomeGridView info={this.state.discounts} onDridSelected={(this.onGridSelected)}/>
             <SpacingView/>
             <View style={styles.recommendHeader}>
                 <Heading2>猜你喜欢</Heading2>
@@ -154,14 +158,11 @@ export default class HomeScene extends PureComponent {
         </View>)
     }
 
-    //头部组件中GridView
-    // 被点击
+    //头部组件中GridView被点击
     onGridSelected(index: number) {
         let discount = this.state.discounts[index];
-
-        if (discount.type == 1) {
+        if (discount.type === 1) {
             StatusBar.setBarStyle('default', false);
-
             let location = discount.tplurl.indexOf('http');
             let url = discount.tplurl.slice(location);
             this.props.navigation.navigate('Web', {url: url})
@@ -186,7 +187,7 @@ export default class HomeScene extends PureComponent {
                 refreshing={this.state.refreshing}
                 //头部组件
                 ListHeaderComponent={this.renderHeader}
-                //设置item
+                //设置item,理解成adapter,直接绑定了数据源给函数
                 renderItem={this.renderCell}/>
         </View>);
     }
@@ -210,4 +211,14 @@ const styles = StyleSheet.create({
         height: 20,
         margin: 5,
     },
+    searchBar: {
+        width: screen.width * 0.7,
+        height: 30,
+        borderRadius: 19,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        alignSelf: 'center',
+    }
 });

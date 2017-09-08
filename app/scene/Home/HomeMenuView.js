@@ -1,7 +1,10 @@
 import React, {PureComponent} from 'react';
-import {View, Text, StyleSheet, ScrollView,} from 'react-native';
+import {View, StyleSheet, ScrollView,} from 'react-native';
 
 import HomeMenuItem from './HomeMenuItem';
+import screen from '../../common/screen';
+import color from "../../widget/color";
+import PageControl from "../../widget/PageControl";
 
 export default class HomeMenuView extends PureComponent {
     state: {
@@ -17,6 +20,7 @@ export default class HomeMenuView extends PureComponent {
 
     render() {
         let {menuInfo, onMenuSelected} = this.props;
+        //map方法会把menuInfo中的每一个元素作为参数传递给形参info
         let menuItems = menuInfo.map(
             (info, i) => (
                 <HomeMenuItem
@@ -30,7 +34,7 @@ export default class HomeMenuView extends PureComponent {
         );
 
         let menuViews = [];
-        //将数字进行上舍入，大于1.0就是2
+        //将数字进行上舍入，大于1.0就是2,此时计算得有2页
         let pageCount = Math.ceil(menuItems.length / 10);
 
         for (let i = 0; i < pageCount; i++) {
@@ -52,16 +56,38 @@ export default class HomeMenuView extends PureComponent {
                         showsHorizontalScrollIndicator={false}
                 //滚动条会停在滚动视图的尺寸的整数倍位置
                         pagingEnabled={true}
-                //在滚动的过程中每帧最多调用一次这个回调函数
+                //在滚动的过程中每帧最多调用一次这个回调函数，这个函数是为了在滚动时通知控制器变化
                         onScroll={(e) => this.onScroll(e)}>
                 <View style={styles.menuContainer}>{menuViews}</View>
-            </ScrollView></View>);
+            </ScrollView>
+            <PageControl
+                style={styles.pageControl}
+                numberOfPages={pageCount}
+                currentPage={this.state.currentPage}
+                hidesForSinglePage={true}
+                pageIndicatorTintColor='gray'
+                currentPageIndicatorTintColor={color.theme}
+                indicatorSize={{width: 8, height: 8}}
+            />
+        </View>);
+    }
+
+    onScroll(e: any) {
+        console.log("onScroll","执行")
+        let x = e.nativeEvent.contentOffset.x;
+        let currentPage = Math.round(x / screen.width);
+
+        if (this.state.currentPage != currentPage) {
+            this.setState({
+                currentPage: currentPage
+            })
+        }
     }
 }
 
 const styles = StyleSheet.create({
     container: {
-        background: 'white',
+        backgroundColor: 'white',
     },
     contentContainer: {},
     menuContainer: {
@@ -69,7 +95,7 @@ const styles = StyleSheet.create({
     },
     itemView: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
+        flexWrap: 'wrap',   //正常换行
         width: screen.width,
     },
     pageControl: {
